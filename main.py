@@ -2,6 +2,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
+from analyzer import analyze_folder
 
 
 class PhotoOrganizer:
@@ -9,8 +10,9 @@ class PhotoOrganizer:
     def __init__(self):
 
         self.root = ttk.Window(themename="flatly")
-        self.root.title("Photo Organizer v0.1")
-        self.root.geometry("850x700")
+        self.root.title("Photo Organizer v0.2")
+        self.root.geometry("900x950")
+        self.root.minsize(900, 950)
 
         self.source_path = ttk.StringVar()
         self.output_path = ttk.StringVar()
@@ -106,6 +108,20 @@ class PhotoOrganizer:
         self.preview_label.pack(anchor=W, padx=10, pady=10)
 
         ########################################
+        # 폴더 분석
+        ########################################
+
+        analysis = ttk.LabelFrame(self.root, text="폴더 분석")
+        analysis.pack(fill=X, padx=15, pady=10)
+
+        ttk.Button(
+            analysis,
+            text="📊 폴더 분석",
+            bootstyle=INFO,
+            command=self.analyze
+        ).pack(fill=X, padx=10, pady=10)
+
+        ########################################
         # 진행률
         ########################################
 
@@ -161,8 +177,9 @@ class PhotoOrganizer:
 
         if folder:
             self.source_path.set(folder)
+
             self.preview_label.config(
-                text=f"원본 폴더\n\n{folder}"
+                text="원본 폴더가 선택되었습니다.\n\n'📊 폴더 분석' 버튼을 눌러주세요."
             )
 
     ########################################
@@ -173,6 +190,36 @@ class PhotoOrganizer:
 
         if folder:
             self.output_path.set(folder)
+
+    ########################################
+
+    def analyze(self):
+
+        folder = self.source_path.get()
+
+        if not folder:
+            self.log.insert("end", "원본 폴더를 먼저 선택하세요.\n")
+            self.log.see("end")
+            return
+
+        self.log.insert("end", "폴더 분석 중...\n")
+        self.log.see("end")
+
+        result = analyze_folder(folder)
+
+        self.preview_label.config(
+            text=(
+                f"Folder Analysis\n\n"
+                f"Total Files : {result['total']}\n"
+                f"Images      : {result['images']}\n"
+                f"Videos      : {result['videos']}\n"
+                f"Others      : {result['others']}\n"
+                f"Total Size  : {result['size_str']}"
+            )
+        )
+
+        self.log.insert("end", "분석 완료!\n")
+        self.log.see("end")
 
     ########################################
 
